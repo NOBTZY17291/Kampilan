@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Silicon Century — EbookHub</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/e89b747b5e.js" crossorigin="anonymous"></script>
+
+  <style>
+    :root {
+      --bg:           #1a1410;
+      --leather:      #2e1f0f;
+      --leather-mid:  #3d2a15;
+      --gold:         #c9a65a;
+      --gold-dim:     #8a6e35;
+      --page:         #f4edd8;
+      --page-shadow:  #ddd0b0;
+      --ink:          #2a1f12;
+      --ink-muted:    #6b5840;
+      --red-ribbon:   #8b2020;
+
+      --font-serif:   'EB Garamond', Georgia, serif;
+      --font-ui:      'Inter', system-ui, sans-serif;
+
+      --page-w:       min(90vw, 680px);
+      --page-h:       min(82vh, 800px);
+      --radius:       2px;
+      --turn-dur:     0.55s;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse at 20% 20%, #2e1a08 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, #1a0f05 0%, transparent 55%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: var(--font-ui);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .site-header {
+      width: 100%;
+      padding: 0.9rem 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-bottom: 1px solid rgba(201,166,90,.2);
+      background: rgba(46,31,15,.85);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .site-header .book-icon {
+      font-size: 1.3rem;
+      color: var(--gold);
+    }
+    .site-header h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1rem, 3vw, 1.25rem);
+      font-weight: 600;
+      color: var(--page);
+      letter-spacing: .02em;
+      flex: 1;
+    }
+    .site-header .byline {
+      font-size: 0.72rem;
+      color: var(--gold-dim);
+      font-style: italic;
+      white-space: nowrap;
+    }
+
+    .book-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem 7rem;
+      perspective: 2000px;
+    }
+
+    .book-wrap {
+      position: relative;
+      width: var(--page-w);
+    }
+    .book-wrap::before {
+      content: '';
+      position: absolute;
+      left: -6px;
+      top: 4px;
+      bottom: 4px;
+      width: 10px;
+      background: linear-gradient(to right, #0d0a06, #3d2a15);
+      border-radius: 2px 0 0 2px;
+      z-index: 0;
+    }
+    .book-wrap::after {
+      content: '';
+      position: absolute;
+      right: -4px;
+      top: 3px;
+      bottom: 3px;
+      width: 5px;
+      background: linear-gradient(to right, var(--page-shadow), #c8bb9e);
+      border-radius: 0 1px 1px 0;
+      z-index: 0;
+    }
+
+    .book-page {
+      position: relative;
+      z-index: 1;
+      width: var(--page-w);
+      min-height: var(--page-h);
+      background: var(--page);
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 28px,
+          rgba(0,0,0,.03) 28px,
+          rgba(0,0,0,.03) 29px
+        );
+      border-radius: 0 var(--radius) var(--radius) 0;
+      box-shadow:
+        -4px 0 8px rgba(0,0,0,.4),
+         0   4px 24px rgba(0,0,0,.45),
+         inset -3px 0 6px rgba(0,0,0,.06);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform-origin: left center;
+      transition: transform var(--turn-dur) cubic-bezier(.4,0,.2,1),
+                  opacity  var(--turn-dur) ease;
+    }
+
+    .book-page.turn-out {
+      transform: perspective(1200px) rotateY(-25deg) scale(0.97);
+      opacity: 0;
+    }
+    .book-page.turn-in {
+      transform: perspective(1200px) rotateY(12deg) scale(0.97);
+      opacity: 0;
+    }
+    .book-page.turn-in.active {
+      transform: perspective(1200px) rotateY(0deg) scale(1);
+      opacity: 1;
+    }
+
+    .page-header {
+      background: var(--leather-mid);
+      color: var(--gold);
+      font-family: var(--font-serif);
+      font-size: clamp(0.75rem, 2vw, 0.9rem);
+      font-style: italic;
+      padding: 0.45rem 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--gold-dim);
+      min-height: 2.2rem;
+    }
+    .page-header .chapter-label {
+      font-weight: 600;
+      font-style: normal;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: 0.7rem;
+    }
+    .page-header .page-num {
+      color: var(--gold-dim);
+      font-size: 0.75rem;
+    }
+
+    .page-body {
+      flex: 1;
+      padding: clamp(1.1rem, 4vw, 2.2rem) clamp(1.2rem, 5vw, 2.8rem);
+      overflow-y: auto;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: var(--gold-dim) transparent;
+    }
+    .page-body::-webkit-scrollbar { width: 5px; }
+    .page-body::-webkit-scrollbar-thumb {
+      background: var(--gold-dim);
+      border-radius: 10px;
+    }
+
+    .page-chapter-title {
+      font-family: var(--font-serif);
+      font-size: clamp(1.2rem, 4vw, 1.8rem);
+      color: var(--ink);
+      line-height: 1.25;
+      margin-bottom: 1.1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid rgba(42,31,18,.2);
+    }
+
+    .page-text {
+      font-family: var(--font-serif);
+      font-size: clamp(1rem, 2.5vw, 1.12rem);
+      line-height: 1.8;
+      color: var(--ink);
+      text-align: justify;
+      hyphens: auto;
+    }
+    .page-text b { color: #5a3a10; }
+
+    .page-img {
+      display: block;
+      max-width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      margin: 0.5rem auto 1.2rem;
+      border-radius: 3px;
+      box-shadow: 0 3px 14px rgba(0,0,0,.2);
+    }
+
+    .page-img-small {
+      max-height: 180px;
+    }
+
+    .page-img-label {
+      text-align: center;
+      font-family: var(--font-serif);
+      font-size: 0.9rem;
+      color: var(--ink-muted);
+      margin-top: 0.3rem;
+      margin-bottom: 0.8rem;
+      font-style: italic;
+    }
+
+    .page-footer {
+      height: 2rem;
+      position: relative;
+      background: transparent;
+    }
+    .page-footer::after {
+      content: '';
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 28px; height: 28px;
+      background: linear-gradient(
+        135deg,
+        var(--page) 50%,
+        var(--page-shadow) 50%
+      );
+      box-shadow: -2px -2px 5px rgba(0,0,0,.1);
+    }
+
+    .nav-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0; right: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(1rem, 5vw, 3rem);
+      padding: 0.8rem 1.5rem;
+      background: rgba(20,12,4,.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(201,166,90,.18);
+    }
+
+    .nav-btn {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      border: 1.5px solid var(--gold-dim);
+      background: var(--leather);
+      color: var(--gold);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s, border-color .2s, transform .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--leather-mid);
+      border-color: var(--gold);
+      transform: scale(1.08);
+    }
+    .nav-btn:active:not(:disabled) { transform: scale(0.95); }
+    .nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .page-indicator {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.15rem;
+    }
+    .page-indicator .label {
+      font-size: 0.62rem;
+      color: var(--gold-dim);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+    .page-indicator .numbers {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      color: var(--gold);
+      letter-spacing: .03em;
+    }
+
+    .progress-bar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      background: var(--gold);
+      transition: width 0.4s ease;
+      z-index: 300;
+    }
+
+    @media (max-width: 480px) {
+      :root {
+        --page-w: 95vw;
+        --page-h: 72vh;
+      }
+      .book-wrap::before { display: none; }
+      .book-wrap::after  { display: none; }
+      .page-body { padding: 1rem 1.1rem; }
+    }
+
+    @media (min-width: 1200px) {
+      :root {
+        --page-w: 700px;
+        --page-h: 75vh;
+      }
+    }
+
+
+    .img-only-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 50vh;
+    }
+    .img-only-container .page-img {
+      max-height: 380px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="progress-bar" id="progress"></div>
+
+  <header class="site-header">
+    <i class="fa-solid fa-book-open book-icon"></i>
+    <h1>The Silicon Century</h1>
+    <span class="byline">by Group 2</span>
+  </header>
+
+  <main class="book-stage">
+    <div class="book-wrap">
+      <article class="book-page" id="bookPage">
+        <div class="page-header">
+          <span class="chapter-label" id="chapterLabel">Panimula</span>
+          <span class="page-num" id="pageNum">1 / 37</span>
+        </div>
+        <div class="page-body" id="pageBody">
+          <h2 class="page-chapter-title" id="pageTitle"></h2>
+          <div id="pageImgContainer" style="display:none;">
+            <img class="page-img" id="pageImg" alt="">
+            <p class="page-img-label" id="pageImgLabel"></p>
+          </div>
+          <div class="page-text" id="pageContent"></div>
+        </div>
+        <div class="page-footer"></div>
+      </article>
+    </div>
+  </main>
+
+ 
+  <nav class="nav-bar">
+    <button class="nav-btn" id="prevBtn" aria-label="Previous page">
+      <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <div class="page-indicator">
+      <span class="label">Page</span>
+      <span class="numbers" id="navNum">1 / 37</span>
+    </div>
+    <button class="nav-btn" id="nextBtn" aria-label="Next page">
+      <i class="fa-solid fa-chevron-right"></i>
+    </button>
+  </nav>
+
+  <script>
+  const pages = [
+    // Page 1
+    {
+      chapter: "Panimula",
+      title: "Panimula",
+      img: null,
+      imgLabel: "",
+      text: `Ang kompyuter ay isa sa pinakamahalagang imbensyon sa kasaysayan ng sangkatauhan. Malaki ang naging ambag nito sa pagbabago ng paraan ng pakikipagkomunikasyon, pag-aaral, paghahanapbuhay, at maging sa pang-araw-araw na gawain ng tao. Sa kasalukuyan, halos lahat ng aspeto ng buhay ay may kaugnayan na sa teknolohiya.<br><br>Ngunit bago marating ang makabagong anyo ng kompyuter na ginagamit natin ngayon, dumaan muna ito sa mahabang proseso ng pag-unlad, pagtuklas, at iba't ibang inobasyong humubog sa kasaysayan nito.`
+    },
+    // Page 2
+    {
+      chapter: "Sinaunang Kagamitan",
+      title: "Mga Sinaunang Kagamitan sa Pagbibilang (2700–3000 BCE)",
+      img: "img/Abacus.jpeg",
+      imgLabel: "Ang Abako",
+      text: ``
+    },
+    // Page 3
+    {
+      chapter: "Sinaunang Kagamitan",
+      title: "",
+      img: null,
+      imgLabel: "",
+      text: `Bago naimbento ang modernong kompyuter, gumamit muna ang tao ng iba't ibang kasangkapan upang mapadali ang pagbibilang at paglutas ng mga suliraning pangmatematika. Isa sa pinakaunang halimbawa nito ay ang <b>Abako</b>, na kinikilalang sinaunang kagamitan sa pagkukuwenta.<br><br><b>Mahahalagang Impormasyon:</b><br><br>• Ginamit ito sa mga sinaunang kabihasnan tulad ng Tsina, Ehipto, at Babilonya.<br>• Tinatayang nagsimula itong gamitin noong humigit-kumulang 3000 BCE.<br>• Nakatutulong ito sa pagsasagawa ng pagdaragdag, pagbabawas, pagpaparami, at paghahati ng bilang.<br><br>Ang Abako ang naging pundasyon ng kaisipan na maaaring gumamit ang tao ng mga kagamitan upang mapabilis at mapadali ang proseso ng pagkukuwenta, isang konseptong naging daan sa pagbuo ng kompyuter.`
+    },
+    // Page 4
+    {
+      chapter: "Mekanikal na Pagkukuwenta",
+      title: "Panahon ng Mekanikal na Pagkukuwenta",
+      img: "img/meka1.jpeg",
+      imgLabel: "",
+      text: ``
+    },
+    // Page 5
+    {
+      chapter: "Mekanikal na Pagkukuwenta",
+      title: "",
+      img: "img/meka2.jpeg",
+      imgLabel: "",
+      text: `Ang panahon ng mekanikal na pagkukuwenta ay nagsimula nang gumamit ang tao ng mga makinang tumutulong sa mas mabilis at mas tumpak na pagpoproseso ng mga bilang. Matapos ang simpleng paggamit ng abako, naimbento ang iba't ibang mekanikal na kagamitan para sa mas komplikadong operasyon sa matematika.<br><br>Isa sa mga naging mahalagang imbensyon ay ang <b>Pascaline</b> na ginawa ni Blaise Pascal noong 1642. Ito ay isang mekanikal na kalkulador na kayang magsagawa ng pagdaragdag at pagbabawas. Sumunod dito ang <b>Stepped Reckoner</b> ni Gottfried Wilhelm Leibniz na may kakayahang magsagawa ng pagpaparami at paghahati.<br><br>Naging mahalaga ang panahong ito dahil ito ang naglatag ng pundasyon para sa pagbuo ng mas makabagong teknolohiya sa pagkukuwenta at naging daan tungo sa paglikha ng kompyuter.`
+    },
+    // Page 6
+    {
+      chapter: "Ama ng Kompyuter",
+      title: "Ama ng Kompyuter",
+      img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1KX4my3vQeu5OOC0CnDK7KleVuC3sHB4yRSCXfQd8sRwE7gNai90ew_5n&s=10",
+      imgLabel: "Charles Babbage",
+      text: ``
+    },
+    // Page 7
+    {
+      chapter: "Ama ng Kompyuter",
+      title: "",
+      img: null,
+      imgLabel: "",
+      text: `<b>1. Charles Babbage — Ama ng Kompyuter</b><br><br>Si Charles Babbage ang pinakakilalang tinatawag na "Ama ng Computer." Isa siyang Ingles na matematiko at imbentor noong ika-19 na siglo. Nais niyang gumawa ng makina na kayang magsagawa ng komplikadong pagkukuwenta nang mas mabilis at mas tama kaysa sa tao.`
+    },
+    // Page 8
+    {
+      chapter: "Ama ng Kompyuter",
+      title: "",
+      img: "https://www.thepinknews.com/wp-content/uploads/2019/06/Alan_Turing1.jpg",
+      imgLabel: "Alan Turing",
+      text: ``
+    },
+    // Page 9
+    {
+      chapter: "Ama ng Kompyuter",
+      title: "",
+      img: null,
+      imgLabel: "",
+      text: `<b>2. Alan Turing — Ama ng Computer Science</b><br><br>Si Alan Turing ay isang British mathematician na nagbigay ng pundasyon sa modernong computer science. Bumuo siya ng konsepto ng <b>Turing Machine</b>, isang teoretikal na modelo na nagpapakita kung paano nagpoproseso ng impormasyon ang isang computer.<br><br>Noong Ikalawang Digmaang Pandaigdig, tumulong din siya sa pagbasag ng mga naka-encrypt na mensahe ng kalaban, na naging mahalaga sa kasaysayan. Ang kanyang mga ideya ang naging daan para sa paglikha ng software at modernong pagpoprograma.`
+    },
+    // Page 10
+    {
+      chapter: "Ama ng Kompyuter",
+      title: "",
+      img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9YbH4U3zWn66nzx4Hojd87aafC-G2hGQkeckiCnBwzA&s=10",
+      imgLabel: "John von Neumann",
+      text: ``
+    },
+    // Page 11
+    {
+      chapter: "Ama ng Kompyuter",
+      title: "",
+      img: null,
+      imgLabel: "",
+      text: `<b>3. John von Neumann — Naglatag ng Estruktura ng Modernong Computer</b><br><br>Si John von Neumann ay nagmungkahi ng disenyo kung saan ang programa at datos ay parehong nakaimbak sa memorya ng computer. Tinatawag itong <b>von Neumann architecture</b>.<br><br>Ito ang naging batayan ng karamihan sa mga computer na ginagamit ngayon—mula desktop at laptop hanggang smartphone.`
+    },
+    // Page 12
+    {
+      chapter: "Ama ng Kompyuter",
+      title: "",
+      img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPCihAg4-RINaHBI49L5H36sx1-TlSkVE_A6_aW6KZ85_8CHe3kXTLz0Q&s=10",
+      imgLabel: "Konrad Zuse",
+      text: ``
+    },
+    // Page 13
+    {
+      chapter: "Ama ng Kompyuter",
+      title: "",
+      img: null,
+      imgLabel: "",
+      text: `<b>4. Konrad Zuse — Tagapagbuo ng Maagang Programmable Computer</b><br><br>Si Konrad Zuse ay isang Aleman na imbentor na gumawa ng <b>Z3</b>, isa sa mga unang gumaganang programmable computers sa mundo. Ang kanyang mga proyekto ay nagpakita na posible ang awtomatikong pagproseso ng impormasyon gamit ang makina.`
+    },
+    // Page 14
+    {
+      chapter: "Unang Henerasyon",
+      title: "Unang Henerasyon ng Computer",
+      img: "img/bin.jpeg",
+      imgLabel: "Unang Henerasyon ng Computer",
+      text: ``
+    },
+    // Page 15
+    {
+      chapter: "Unang Henerasyon",
+      title: "",
+      img: null,
+      imgLabel: "",
+      text: `Ang unang henerasyon ng kompyuter ay tumutukoy sa mga kompyuter na ginawa mula 1940s hanggang kalagitnaan ng 1950s. Gumamit ang mga ito ng <b>vacuum tubes</b> bilang pangunahing elektronikong bahagi.<br><br><b>Mga katangian:</b><br>• Gumagamit ng vacuum tubes.<br>• Napakalaki at sumasakop ng buong silid.<br>• Malakas kumonsumo ng kuryente.<br>• Madaling uminit at madalas masira.<br>• Gumagamit ng machine language (binary: 0 at 1).<br><br><b>Mga halimbawa:</b> ENIAC, UNIVAC I, IBM 701.<br><br>Ang ENIAC ang isa sa mga pinakatanyag na kompyuter ng unang henerasyon at ginagamit noon sa mga kalkulasyong pang-agham at pangmilitar.`
+    },
+    // Page 16
+    {
+      chapter: "Unang Henerasyon",
+      title: "",
+      img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQDpxEBKIPr2KWthhc3uWzbV5lQprCs5vk2LNKMh0q_yg&s",
+      imgLabel: "UNIAC",
+      text: ``
+    },
+    // Page 17
+    {
+      chapter: "Unang Henerasyon",
+      title: "",
+      img: "https://images.computerhistory.org/revonline/images/102667576p-03-01.jpg?w=600",
+      imgLabel: "UNIVAC I",
+      text: ``
+    },
+    // Page 18
+    {
+      chapter: "Unang Henerasyon",
+      title: "",
+      img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR2EcWt_CKKjnHosyF7ji5o9bRr1n47x2es_-hWDimN61-kuxrdWNbqHAco&s=10",
+      imgLabel: "IBM",
+      text: ``
+    },
+    // Page 19
+    {
+      chapter: "Ikalawang Henerasyon",
+      title: "Ikalawang Henerasyon ng Computer",
+      img: "img/bin2.jpeg",
+      imgLabel: "Ikalawang Henerasyon ng Computer",
+      text: ``
+    },
+    // Page 20
+    {
+      chapter: "Ikalawang Henerasyon",
+      title: "",
+      img: null,
+      imgLabel: "",
+      text: `Ibm 1401 (1956–1963) ay gumamit ng <b>transistor</b> bilang kapalit ng vacuum tubes. Dahil dito, naging mas maliit, mas mabilis, mas matipid sa kuryente, at mas maaasahan ang mga kompyuter.<br><br><b>Mga katangian:</b><br>• Gumamit ng transistor.<br>• Mas maliit at mas mabilis kaysa sa unang henerasyon.<br><br>Ito ang henerasyong nagbigay-daan sa mas malawak na paggamit ng mga kompyuter sa negosyo, pamahalaan, at pananaliksik.`
+    },
+    // Page 21
+    {
+      chapter: "Ikalawang Henerasyon",
+      title: "",
+      img: "https://spectrum.ieee.org/media-library/the-vintage-ibm-1401-at-the-computer-history-museum.jpg?id=25587012&width=2000&height=1500&coordinates=0%2C0%2C0%2C0",
+      imgLabel: "IBM 1401",
+      text: ``
+    },
+    // Page 22
+    {
+      chapter: "Ikatlong Henerasyon",
+      title: "Ikatlong Henerasyon ng Computer",
+      img: "img/bin3.jpeg",
+      imgLabel: "Ikatlong Henerasyon ng Computer",
+      text: ``
+    },
+    // Page 23
+    {
+      chapter: "Ikatlong Henerasyon",
+      title: "",
+      img: null,
+      imgLabel: "",
+      text: `Ikatlong Henerasyon ng Kompyuter (1964–1971)<br><br>Ang ikatlong henerasyon ng kompyuter ay nagsimula noong 1964 hanggang 1971. Sa panahong ito, ang <b>Integrated Circuit (IC)</b> ang pumalit sa transistor bilang pangunahing bahagi ng kompyuter. Dahil dito, naging mas maliit, mas mabilis, mas maaasahan, at mas matipid sa kuryente ang mga kompyuter.<br><br><b>Mga katangian:</b><br>• Gumamit ng Integrated Circuit (IC).<br>• Mas mabilis ang pagpoproseso ng datos.<br>• Mas maliit ang laki ng kompyuter.<br>• Mas kaunti ang init na nalilikha.<br>• Mas maaasahan at mas madaling gamitin.`
+    },
+    // Page 24
+    {
+      chapter: "Ikatlong Henerasyon",
+      title: "",
+      img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqFMMzlKjO4OXuc4R63t5lrxojxP0pVWJRJq4xvy4N2HKyK9uh3A1-aoK6&s=10",
+      imgLabel: "IBM System/360",
+      text: ``
+    },
+    // Page 25
+    {
+      chapter: "Ikatlong Henerasyon",
+      title: "",
+      img: "https://upload.wikimedia.org/wikipedia/commons/6/6b/PDP-8_%281%29.jpg",
+      imgLabel: "PDP-8",
+      text: ``
+    },
+    // Page 26
+    {
+      chapter: "Ikatlong Henerasyon",
+      title: "",
+      img: "https://gunkies.org/w/images/thumb/1/14/CISLMultics.jpg/350px-CISLMultics.jpg",
+      imgLabel: "Honeywell 6000",
+      text: ``
+    },
+    // Page 27
+    {
+      chapter: "Ikaapat na Henerasyon",
+      title: "Ikaapat na Henerasyon ng Computer",
+      img: "img/bin4.jpeg",
+      imgLabel: "Ikaapat na Henerasyon ng Computer",
+      text: ``
+    },
+    // Page 28
+    {
+      chapter: "Ikaapat na Henerasyon",
+      title: "",
+      img: null,
+      imgLabel: "",
+      text: `Ikaapat na Henerasyon ng Kompyuter (1971–Kasalukuyan)<br><br>Ang ikaapat na henerasyon ng kompyuter ay nagsimula noong 1971 nang gamitin ang <b>microprocessor</b>, na naglalaman ng buong Central Processing Unit (CPU) sa isang maliit na chip. Dahil dito, naging mas maliit, mas mabilis, mas mura, at mas makapangyarihan ang mga kompyuter, kaya naging posible ang paglaganap ng mga personal computer (PC).<br><br><b>Mga katangian:</b><br>• Gumamit ng microprocessor.<br>• Mas maliit at mas magaan ang mga kompyuter.<br>• Mas mabilis ang pagpoproseso ng datos.<br>• Mas mura at mas madaling gamitin.<br>• Nagsimula ang paggamit ng mga personal computer (PC).`
+    },
+    // Page 29
+    {
+      chapter: "Ikaapat na Henerasyon",
+      title: "",
+      img: "https://upload.wikimedia.org/wikipedia/commons/6/69/IBM_PC_5150.jpg",
+      imgLabel: "IBM Personal Computer",
+      text: ``
+    },
+    // Page 30
+    {
+      chapter: "Ikaapat na Henerasyon",
+      title: "",
+      img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTVs-Am2wJk8Ww9NqanN0PoWBqBfOwRvK6t3MwDTIOLog&s=10",
+      imgLabel: "Apple II",
+      text: ``
+    },
+    // Page 31
+    {
+      chapter: "Ikaapat na Henerasyon",
+      title: "",
+      img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQvrzKmMBDd3TI995IjGzOoaFZJSMI2hJNQoTVAbk8wspa2BN1EWZmpUhZo&s=10",
+      imgLabel: "Intel 4004",
+      text: ``
+    },
+    // Page 32
+    {
+      chapter: "Makabagong Panahon",
+      title: "Makabagong Panahon ng Teknolohiya",
+      img: "img/pn.jpeg",
+      imgLabel: "2000s – Lumaganap ang paggamit ng internet at smartphones.",
+      text: ``
+    },
+    // Page 33
+    {
+      chapter: "Makabagong Panahon",
+      title: "",
+      img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOjY-CR0smuL3pt5apP_Aos3RaeMltI7N0pg6xRfXtUG5VDPvbz9_je4w&s=10",
+      imgLabel: "2006 – Ipinakilala ang Cloud Computing, na nagpapahintulot sa pag-iimbak ng data online.",
+      text: ``
+    },
+    // Page 34
+    {
+      chapter: "Makabagong Panahon",
+      title: "",
+      img: "img/ip.jpg",
+      imgLabel: "2007 – Inilabas ng Apple Inc. ang unang iPhone na nagbago sa industriya ng mobile technology.",
+      text: ``
+    },
+    // Page 35
+    {
+      chapter: "Makabagong Panahon",
+      title: "",
+      img: "img/5g.jpeg",
+      imgLabel: "2010s – Naging popular ang Social Media, Big Data, at Internet of Things (IoT).",
+      text: ``
+    },
+    // Page 36
+    {
+      chapter: "Makabagong Panahon",
+      title: "",
+      img: "img/ai.jpeg",
+      imgLabel: "",
+      text: `<b>2020s – Mabilis na umunlad ang Artificial Intelligence (AI) at 5G Technology.</b><br><br><b>Epekto:</b><br>• Mas mabilis ang komunikasyon at pagkuha ng impormasyon.<br>• Mas naging madali ang pag-aaral, negosyo, at trabaho dahil sa teknolohiya.`
+    },
+    // Page 37
+    {
+      chapter: "Konklusyon",
+      title: "Konklusyon",
+      img: null,
+      imgLabel: "",
+      text: `Ang kompyuter ay isa sa pinakamahalagang imbensyon ng tao. Mula sa malalaking makina noong unang panahon hanggang sa makabagong AI at smartphones ngayon, malaki ang naitulong nito sa pag-unlad ng lipunan.<br><br><b>Epekto ng Kompyuter sa Lipunan:</b><br>• <b>Edukasyon</b> — Pinadali ang online learning at pananaliksik.<br>• <b>Komunikasyon</b> — Nagkaroon ng mabilis na pakikipag-ugnayan sa buong mundo.<br>• <b>Negosyo</b> — Pinabilis ang transaksiyon at pamamahala ng impormasyon.<br>• <b>Trabaho</b> — Maraming bagong hanapbuhay ang nabuo sa larangan ng teknolohiya.<br>• <b>Araw-araw na Buhay</b> — Naging mas madali ang pagbabayad, pamimili, at pagkuha ng serbisyo online.`
+    }
+  ];
+
+  const TOTAL = pages.length;
+  let current = 0;
+  let animating = false;
+
+
+  const bookPage      = document.getElementById('bookPage');
+  const chapterLabel  = document.getElementById('chapterLabel');
+  const pageNumEl     = document.getElementById('pageNum');
+  const pageTitle     = document.getElementById('pageTitle');
+  const pageImg       = document.getElementById('pageImg');
+  const pageImgLabel  = document.getElementById('pageImgLabel');
+  const pageImgCont   = document.getElementById('pageImgContainer');
+  const pageContent   = document.getElementById('pageContent');
+  const pageBody      = document.getElementById('pageBody');
+  const prevBtn       = document.getElementById('prevBtn');
+  const nextBtn       = document.getElementById('nextBtn');
+  const navNum        = document.getElementById('navNum');
+  const progress      = document.getElementById('progress');
+  const swipeHint     = document.getElementById('swipeHint');
+
+
+  setTimeout(() => swipeHint.classList.add('hidden'), 3000);
+
+  function render(idx) {
+    const p = pages[idx];
+    chapterLabel.textContent = p.chapter;
+    pageNumEl.textContent    = `${idx + 1} / ${TOTAL}`;
+    navNum.textContent       = `${idx + 1} / ${TOTAL}`;
+    pageTitle.textContent    = p.title;
+    pageTitle.style.display  = p.title ? '' : 'none';
+
+    if (p.img) {
+      pageImg.src = p.img;
+      pageImgLabel.textContent = p.imgLabel;
+      pageImgCont.style.display = 'block';
+      
+      if (!p.text || p.text.trim() === '') {
+        pageImg.classList.add('img-only-page');
+        pageImg.style.maxHeight = '380px';
+      } else {
+        pageImg.classList.remove('img-only-page');
+        pageImg.style.maxHeight = '260px';
+      }
+    } else {
+      pageImgCont.style.display = 'none';
+    }
+
+    pageContent.innerHTML = p.text || '';
+    pageBody.scrollTop = 0;
+
+    prevBtn.disabled = idx === 0;
+    nextBtn.disabled = idx === TOTAL - 1;
+
+
+    progress.style.width = `${((idx + 1) / TOTAL) * 100}%`;
+  }
+
+  function turnPage(dir) {
+    if (animating) return;
+    const next = current + dir;
+    if (next < 0 || next >= TOTAL) return;
+    animating = true;
+
+  
+    bookPage.classList.add(dir > 0 ? 'turn-out' : 'turn-in');
+    bookPage.classList.remove(dir > 0 ? 'turn-in' : 'turn-out');
+
+    setTimeout(() => {
+      current = next;
+      render(current);
+
+      
+      bookPage.classList.remove('turn-out', 'turn-in', 'active');
+      bookPage.classList.add(dir > 0 ? 'turn-in' : 'turn-out');
+
+      
+      void bookPage.offsetWidth;
+
+      
+      bookPage.classList.add('active');
+
+      setTimeout(() => {
+        bookPage.classList.remove('turn-in', 'turn-out', 'active');
+        animating = false;
+      }, 600);
+    }, 320);
+  }
+
+  prevBtn.addEventListener('click', () => turnPage(-1));
+  nextBtn.addEventListener('click', () => turnPage(1));
+
+  // Keyboard
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') turnPage(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   turnPage(-1);
+  });
+
+  render(0);
+  </script>
+</body>
+</html>
