@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="description" content="Brought to you by 12 ICT Group 2">
+<meta name="robots" content="index, follow">
+<meta property="og:image" content="logo.png">
+<meta property="og:title" content="EbookHub — Browse Stories">
+<meta property="og:description" content="Brought to you by 12 ICT Group 2">
+<meta property="og:url" content="">
+<meta name="twitter:image" content="logo.png">
+<link rel="icon" href="logo.png">
+<title>EbookHub — Browse Stories</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+<script src="https://kit.fontawesome.com/e89b747b5e.js" crossorigin="anonymous"></script>
+
+    <style>
+  :root{
+    --bg: #0a0a0c;
+    --surface: #14141a;
+    --surface-alt: #1b1b22;
+    --line: rgba(201,166,90,.18);
+    --gold: #c9a65a;
+    --gold-bright: #e8c97a;
+    --text: #ece7da;
+    --text-muted: #8d887a;
+    --maroon: #7a2e2e;
+    --shadow-deep: rgba(0,0,0,.65);
+
+    --font-display: 'Libre Baskerville', Georgia, serif;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+
+    --section-gap: clamp(0.8rem, 2vw, 1.5rem);
+    --card-w: clamp(5.5rem, 18vw, 6.5rem);
+    --card-h: clamp(9rem, 28vw, 11rem);
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+    padding-bottom: 3rem;
+  }
+
+  #nav{
+    position:fixed; top:0; left:0; right:0; z-index:300;
+    display:flex; align-items:center; justify-content:space-between;
+    padding: clamp(0.6rem, 2vw, 1rem) clamp(1rem, 3vw, 2rem);
+    background:rgba(10,10,12,.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    transition: background .3s ease, box-shadow .3s ease;
+  }
+  .nav-left, .nav-right {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.4rem, 1.5vw, 0.8rem);
+  }
+  .nav-right { white-space: nowrap; }
+  .logo{
+    display:flex; align-items:center; gap:clamp(6px, 1.5vw, 9px);
+    font-family:var(--font-display); font-style:italic; font-weight:700;
+    font-size:clamp(1.1rem, 3vw, 1.4rem); color:var(--gold-bright); letter-spacing:.01em;
+    text-decoration: none;
+  }
+  #searchInput{
+    opacity: 0; width: 0;
+    padding: 6px 10px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--surface);
+    color: var(--text); font-family: var(--font-body); font-size: 0.85rem;
+    transition: all 0.3s ease;
+  }
+  #searchInput:focus { outline: none; border-color: var(--gold); }
+  #searchInput.open { opacity: 1; width: clamp(7rem, 25vw, 12rem); }
+  .search-wrap, .nav-icon-btn {
+    color: var(--gold); background: transparent; border: none;
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem); cursor: pointer;
+    padding: 0.3rem; transition: color 0.2s;
+  }
+  .nav-icon-btn:hover { color: var(--gold-bright); }
+
+  header {
+    margin-top: 3.5rem;
+    background-image: url('back.jpeg');
+    background-size: cover; background-position: center; background-repeat: no-repeat;
+    min-height: clamp(320px, 50vh, 450px);
+    width: 100%; display: flex; align-items: center; justify-content: center;
+  }
+  .content {
+    width: 100%; max-width: 900px; height: 100%;
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+    padding: clamp(1rem, 3vw, 2.5rem);
+  }
+  .content::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse 70% 60% at 30% 30%, rgba(122,46,46,.18), transparent 60%),
+      linear-gradient(180deg, #111116 0%, #0a0a0c 70%);
+    opacity: 0.6; z-index: -1; border-radius: 4px;
+  }
+  #book {
+    height: clamp(60px, 12vw, 90px); width: clamp(60px, 12vw, 90px);
+    border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,.5);
+    margin-bottom: clamp(0.6rem, 1.5vw, 1rem);
+  }
+  .book-title {
+    font-size: clamp(1rem, 3vw, 1.3rem); font-weight: 800;
+    color: var(--text); text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+    font-family: var(--font-display); line-height: 1.3; margin-bottom: 0.3rem;
+  }
+  .badge-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: clamp(0.4rem, 1vw, 0.6rem);
+    flex-wrap: wrap;
+  }
+  .lang-badge {
+    display: inline-block;
+    font-size: clamp(0.55rem, 1.2vw, 0.62rem);
+    font-weight: 600;
+    font-family: var(--font-body);
+    color: #0a0a0c;
+    background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+    padding: 3px 10px;
+    border-radius: 3px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  #hero {
+    font-size: clamp(0.55rem, 1.5vw, 0.65rem); border-radius: 3px;
+    color: #0a0a0c; letter-spacing: .14em;
+    background:linear-gradient(135deg, var(--gold-bright), var(--gold));
+    padding: clamp(8px, 1.5vw, 14px) clamp(10px, 2vw, 16px);
+    font-weight: 700; text-transform: uppercase; margin-bottom: clamp(0.6rem, 1.5vw, 1rem);
+  }
+  #description {
+    width: min(95%, 650px);
+    font-size: clamp(0.7rem, 1.6vw, 0.82rem); font-weight: 460;
+    font-family: var(--font-body); color: var(--text);
+    line-height: 1.6; margin-bottom: clamp(0.8rem, 2vw, 1.2rem);
+  }
+  #start {
+    border-radius: 6px; font-weight: 600; font-family: var(--font-body);
+    background: var(--gold-bright); border: none;
+    padding: clamp(10px, 2vw, 14px) clamp(14px, 2.5vw, 20px);
+    font-size: clamp(0.8rem, 1.8vw, 0.9rem); cursor: pointer;
+    transition: background 0.2s, transform 0.15s; color: #0a0a0c;
+  }
+  #start:hover { background: var(--gold); transform: translateY(-1px); }
+  #start:active { transform: scale(0.97); }
+  .stars { margin-bottom: clamp(0.4rem, 1vw, 0.6rem); line-height: 1.6; }
+  .stars span {
+    color: var(--text-muted); font-family: var(--font-body);
+    font-size: clamp(0.65rem, 1.4vw, 0.79rem); font-weight: 500;
+  }
+  .dot { opacity: .5; }
+  .stars i{ color:var(--gold); font-size:clamp(0.7rem, 1.5vw, 0.85rem); margin-right:1px; }
+
+  .categ {
+    max-width: 100%; overflow-x: auto; overflow-y: hidden;
+    list-style: none; padding: clamp(0.8rem, 2vw, 1.2rem) clamp(0.8rem, 2vw, 1.5rem);
+    margin: 0; display: flex; flex-wrap: nowrap; gap: clamp(8px, 2vw, 12px);
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .categ::-webkit-scrollbar { display: none; }
+  .categ li {
+    flex-shrink: 0; background: transparent;
+    border: 1px solid var(--gold); border-radius: 20px; transition: background 0.2s;
+  }
+  .categ li:hover { background: rgba(201,166,90,.1); }
+  .categ li.active { background: var(--gold); border-color: var(--gold-bright); }
+  .categ li.active a { color: #0a0a0c; font-weight: 600; }
+  .categ a {
+    display: block; text-decoration: none; color: var(--text);
+    font-size: clamp(0.7rem, 1.8vw, 0.82rem);
+    padding: clamp(8px, 1.5vw, 12px) clamp(12px, 2vw, 18px);
+    font-family: var(--font-body); white-space: nowrap;
+  }
+
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 clamp(0.8rem, 2vw, 1.5rem); margin-bottom: 0.3rem;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.1rem, 3vw, 1.5em); color: var(--text); margin: 0;
+  }
+  .section-link {
+    font-size: clamp(0.7rem, 1.5vw, 0.8rem); color: var(--gold);
+    text-decoration: none; font-family: var(--font-body); font-weight: 500;
+  }
+  .section-link:hover { color: var(--gold-bright); text-decoration: underline; }
+
+  .slides {
+    display: flex; gap: clamp(8px, 2vw, 12px);
+    overflow-x: auto; overflow-y: hidden; flex-wrap: nowrap;
+    padding: clamp(0.5rem, 1.5vw, 1rem) clamp(0.8rem, 2vw, 1.5rem);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin; scrollbar-color: var(--surface-alt) transparent;
+  }
+  .slides::-webkit-scrollbar { height: 4px; }
+  .slides::-webkit-scrollbar-thumb { background: var(--surface-alt); border-radius: 10px; }
+
+  #books {
+    border-radius: 8px; display: flex; flex-direction: column;
+    background: var(--surface); border: 1px solid var(--line);
+    height: var(--card-h); width: var(--card-w); min-width: var(--card-w);
+    align-items: center; flex-shrink: 0;
+    padding: clamp(0.4rem, 1vw, 0.6rem);
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; cursor: pointer;
+  }
+  #books:hover {
+    transform: translateY(-4px); border-color: var(--gold);
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  }
+  #books img{
+    width: clamp(3.2rem, 12vw, 4.2rem); height: clamp(3.2rem, 12vw, 4.2rem);
+    border-radius: 5px; object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0,0,0,.3); margin-bottom: 0.3rem;
+  }
+  #booktitle{
+    text-align: center; font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+    font-weight: 600; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 90%; margin-bottom: 0.2rem;
+  }
+  #genre {
+    font-size: clamp(0.5rem, 1.2vw, 0.6rem);
+    background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+    opacity: .85; padding: 2px 8px; color: var(--bg);
+    border-radius: 10px; font-weight: 600; white-space: nowrap; margin-bottom: 0.2rem;
+  }
+  #bookstars { letter-spacing: -1px; margin-bottom: 0.1rem; }
+  #bookstars i{ color:var(--gold); font-size: clamp(0.45rem, 1.2vw, 0.6rem); }
+  #rangerate {
+    font-size: clamp(0.5rem, 1.2vw, 0.62rem);
+    font-weight: 700; color: var(--text-muted);
+  }
+
+  .genre-section { margin-bottom: var(--section-gap); }
+
+  .site-footer {
+    text-align: center; padding: 2rem 1rem 1rem;
+    color: var(--text-muted); font-size: clamp(0.65rem, 1.5vw, 0.75rem);
+    border-top: 1px solid var(--line); margin-top: 1rem;
+  }
+
+  @media (max-width: 480px) {
+    :root {
+      --card-w: clamp(4.8rem, 28vw, 5.5rem);
+      --card-h: clamp(8rem, 42vw, 9.5rem);
+    }
+    header { min-height: 280px; margin-top: 3rem; }
+    .content { padding: 0.8rem; }
+    #description { width: 100%; }
+  }
+  @media (min-width: 768px) {
+    :root { --card-w: 7rem; --card-h: 11.5rem; }
+    .slides { gap: 14px; }
+  }
+  @media (min-width: 1200px) {
+    :root { --card-w: 7.5rem; --card-h: 12rem; }
+    .content { max-width: 1500px; }
+    .slides { gap: 18px; }
+  }
+</style>
+</head>
+<body>
+    <nav id="nav">
+      <div class="nav-left">
+        <a class="logo" href="#"><i class="fa-solid fa-book"></i>EbookHub</a>
+      </div>
+        <div class="nav-right">
+    <div class="search-wrap">
+      <input type="text" id="searchInput" class="search-input" placeholder="Search titles, authors&hellip;">
+      <button class="nav-icon-btn" id="searchToggle" aria-label="Toggle search"><i class="fa-solid fa-magnifying-glass"></i></button>
+    </div>
+    <button class="nav-icon-btn" aria-label="Account"><i class="fa-regular fa-circle-user" style="font-size:1.25rem;"></i></button>
+    <button class="nav-icon-btn hamburger" id="hamburgerBtn" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+  </div>
+    </nav>
+
+    <header>
+      <div class="content">
+      <img id="book" src="book.jpg" alt="The Silicon Century book cover">
+
+  <div class="book-title" id="title">
+   The Silicon Century: Ang Hindi Kapani-paniwalang Kasaysayan ng Computer
+  </div>
+  <span class="stars" id="heroStars">
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-solid fa-star"></i>
+    <i class="fa-solid fa-star"></i>
+     <span>5.0</span>
+    <br>
+     <span>Group 2</span>
+           <span class="dot">&bull;</span>
+     <span>2026</span>
+           <span class="dot">&bull;</span>
+     <span>History &amp; Technology</span>
+     </span>
+  <div class="badge-row">
+    <span class="lang-badge">Filipino</span>
+  </div>
+  <span id="hero"><i class="fa-solid fa-bolt"></i> #1 in History this week!
+    </span>
+    <span id="description">
+      Paano nga ba tayo napunta mula sa malalaking makina tungo sa mga gadget na kasya sa bulsa? I-kukuwento ng librong ito ang mga kakaibang karakter, matinding awayan ng mga kumpanya, at mga aksidenteng imbensyon na bumuo sa mundong digital ngayon. Isang makulay na paglalakbay sa 70 taon ng kasaysayan&mdash;mula sa unang computer hanggang sa AI&mdash;na magpapamangha sa iyo kung gaano kabilis nagbago ang lahat.
+    </span>
+          <button id="start"><i class="fa-solid fa-play"></i> Start Reading</button>
+          </div>
+</header>
+
+<ul class="categ" id="categoryList">
+  <li class="active"><a href="#" data-cat="all">All</a></li>
+  <li><a href="#" data-cat="trending">Trending</a></li>
+  <li><a href="#" data-cat="latest">Latest</a></li>
+  <li><a href="#" data-cat="scifi">Scifi</a></li>
+  <li><a href="#" data-cat="romance">Romance</a></li>
+  <li><a href="#" data-cat="history">History</a></li>
+  <li><a href="#" data-cat="fiction">Fiction</a></li>
+  <li><a href="#" data-cat="geography">Geography</a></li>
+  <li><a href="#" data-cat="science">Science</a></li>
+  <li><a href="#" data-cat="politics">Politics</a></li>
+  <li><a href="#" data-cat="philosophy">Philosophy</a></li>
+  <li><a href="#" data-cat="technology">Technology</a></li>
+  <li><a href="#" data-cat="dopesheet">Dope Sheet</a></li>
+</ul>
+
+<main id="mainContent"></main>
+
+<footer class="site-footer">
+  <p>&copy; 2026 EbookHub &mdash; Group 2. All rights reserved.</p>
+</footer>
+
+</body>
+</html>
+<script>
+const booksDB = [
+  { title: "The Silicon Century", genre: "History", img: "book.jpg", rating: 5.0, category: "trending", link: "Computer-History/index.html" },
+  { title: "Back Burner", genre: "Dope Sheet", img: "https://tinyurl.com/4653tz7j", rating: 4.5, category: "trending" },
+  { title: "Dune", genre: "Scifi", img: "https://covers.openlibrary.org/b/id/14627222-L.jpg", rating: 4.8, category: "trending" },
+  { title: "Sapiens", genre: "History", img: "https://covers.openlibrary.org/b/id/14549262-L.jpg", rating: 4.7, category: "trending" },
+  { title: "The Fault in Our Stars", genre: "Romance", img: "https://covers.openlibrary.org/b/id/12819382-L.jpg", rating: 4.3, category: "trending" },
+  { title: "Clean Code", genre: "Technology", img: "https://covers.openlibrary.org/b/id/14641968-L.jpg", rating: 4.6, category: "trending" },
+  { title: "A Brief History of Time", genre: "Science", img: "https://covers.openlibrary.org/b/id/14622641-L.jpg", rating: 4.9, category: "trending" },
+
+  { title: "The Women", genre: "History", img: "https://covers.openlibrary.org/b/id/14725153-L.jpg", rating: 4.2, category: "latest" },
+  { title: "Funny Story", genre: "Romance", img: "https://covers.openlibrary.org/b/id/14709477-L.jpg", rating: 4.0, category: "latest" },
+  { title: "The Coming Wave", genre: "Technology", img: "https://covers.openlibrary.org/b/id/14623175-L.jpg", rating: 4.4, category: "latest" },
+  { title: "Project Hail Mary", genre: "Scifi", img: "https://covers.openlibrary.org/b/id/14569953-L.jpg", rating: 4.1, category: "latest" },
+  { title: "Tomorrow, and Tomorrow, and Tomorrow", genre: "Fiction", img: "https://covers.openlibrary.org/b/id/14446883-L.jpg", rating: 3.9, category: "latest" },
+
+  { title: "Dune", genre: "Scifi", img: "https://covers.openlibrary.org/b/id/14627222-L.jpg", rating: 4.8, category: "scifi" },
+  { title: "Project Hail Mary", genre: "Scifi", img: "https://covers.openlibrary.org/b/id/14569953-L.jpg", rating: 4.1, category: "scifi" },
+  { title: "Neuromancer", genre: "Scifi", img: "https://covers.openlibrary.org/b/id/14639980-L.jpg", rating: 4.5, category: "scifi" },
+  { title: "The Martian", genre: "Scifi", img: "https://covers.openlibrary.org/b/id/14641078-L.jpg", rating: 4.3, category: "scifi" },
+  { title: "Ender's Game", genre: "Scifi", img: "https://covers.openlibrary.org/b/id/14632658-L.jpg", rating: 4.6, category: "scifi" },
+
+  { title: "The Fault in Our Stars", genre: "Romance", img: "https://covers.openlibrary.org/b/id/12819382-L.jpg", rating: 4.3, category: "romance" },
+  { title: "Funny Story", genre: "Romance", img: "https://covers.openlibrary.org/b/id/14709477-L.jpg", rating: 4.0, category: "romance" },
+  { title: "Pride and Prejudice", genre: "Romance", img: "https://covers.openlibrary.org/b/id/14646673-L.jpg", rating: 4.7, category: "romance" },
+  { title: "The Notebook", genre: "Romance", img: "https://covers.openlibrary.org/b/id/14634970-L.jpg", rating: 4.2, category: "romance" },
+  { title: "People We Meet on Vacation", genre: "Romance", img: "https://covers.openlibrary.org/b/id/14569920-L.jpg", rating: 4.4, category: "romance" },
+
+  { title: "The Silicon Century", genre: "History", img: "book.jpg", rating: 5.0, category: "history", link: "Computer-History/index.html" },
+  { title: "Sapiens", genre: "History", img: "https://covers.openlibrary.org/b/id/14549262-L.jpg", rating: 4.7, category: "history" },
+  { title: "The Women", genre: "History", img: "https://covers.openlibrary.org/b/id/14725153-L.jpg", rating: 4.2, category: "history" },
+  { title: "Guns, Germs, and Steel", genre: "History", img: "https://covers.openlibrary.org/b/id/14630865-L.jpg", rating: 4.5, category: "history" },
+  { title: "The Splendid and the Vile", genre: "History", img: "https://covers.openlibrary.org/b/id/14626704-L.jpg", rating: 4.1, category: "history" },
+
+  { title: "Tomorrow, and Tomorrow, and Tomorrow", genre: "Fiction", img: "https://covers.openlibrary.org/b/id/14446883-L.jpg", rating: 3.9, category: "fiction" },
+  { title: "The Great Gatsby", genre: "Fiction", img: "https://covers.openlibrary.org/b/id/14634862-L.jpg", rating: 4.3, category: "fiction" },
+  { title: "To Kill a Mockingbird", genre: "Fiction", img: "https://covers.openlibrary.org/b/id/14631098-L.jpg", rating: 4.6, category: "fiction" },
+  { title: "1984", genre: "Fiction", img: "https://covers.openlibrary.org/b/id/14631199-L.jpg", rating: 4.0, category: "fiction" },
+
+  { title: "Prisoners of Geography", genre: "Geography", img: "https://covers.openlibrary.org/b/id/14623688-L.jpg", rating: 4.4, category: "geography" },
+  { title: "The Power of Geography", genre: "Geography", img: "https://covers.openlibrary.org/b/id/14603480-L.jpg", rating: 4.1, category: "geography" },
+  { title: "Atlas of the World", genre: "Geography", img: "https://covers.openlibrary.org/b/id/14613505-L.jpg", rating: 3.8, category: "geography" },
+
+  { title: "A Brief History of Time", genre: "Science", img: "https://covers.openlibrary.org/b/id/14622641-L.jpg", rating: 4.9, category: "science" },
+  { title: "The Gene: An Intimate History", genre: "Science", img: "https://covers.openlibrary.org/b/id/14626039-L.jpg", rating: 4.7, category: "science" },
+  { title: "Astrophysics for People in a Hurry", genre: "Science", img: "https://covers.openlibrary.org/b/id/14626270-L.jpg", rating: 4.5, category: "science" },
+
+  { title: "The Room Where It Happened", genre: "Politics", img: "https://covers.openlibrary.org/b/id/14627138-L.jpg", rating: 4.2, category: "politics" },
+  { title: "Fear: Trump in the White House", genre: "Politics", img: "https://covers.openlibrary.org/b/id/14626872-L.jpg", rating: 3.9, category: "politics" },
+  { title: "A Promised Land", genre: "Politics", img: "https://covers.openlibrary.org/b/id/14624572-L.jpg", rating: 4.4, category: "politics" },
+
+  { title: "Meditations", genre: "Philosophy", img: "https://covers.openlibrary.org/b/id/14641183-L.jpg", rating: 4.6, category: "philosophy" },
+  { title: "The Republic", genre: "Philosophy", img: "https://covers.openlibrary.org/b/id/14633531-L.jpg", rating: 4.3, category: "philosophy" },
+  { title: "Thus Spoke Zarathustra", genre: "Philosophy", img: "https://covers.openlibrary.org/b/id/14631732-L.jpg", rating: 4.0, category: "philosophy" },
+
+  { title: "Clean Code", genre: "Technology", img: "https://covers.openlibrary.org/b/id/14641968-L.jpg", rating: 4.6, category: "technology" },
+  { title: "The Coming Wave", genre: "Technology", img: "https://covers.openlibrary.org/b/id/14623175-L.jpg", rating: 4.4, category: "technology" },
+  { title: "The Innovators", genre: "Technology", img: "https://covers.openlibrary.org/b/id/14626119-L.jpg", rating: 4.8, category: "technology" },
+
+  { title: "Back Burner", genre: "Dope Sheet", img: "https://tinyurl.com/4653tz7j", rating: 4.5, category: "dopesheet" },
+  { title: "Milk and Honey", genre: "Dope Sheet", img: "https://covers.openlibrary.org/b/id/14622626-L.jpg", rating: 4.1, category: "dopesheet" },
+  { title: "The Sun and Her Flowers", genre: "Dope Sheet", img: "https://covers.openlibrary.org/b/id/14630172-L.jpg", rating: 4.7, category: "dopesheet" },
+];
+
+const mainContent = document.getElementById('mainContent');
+const categoryList = document.getElementById('categoryList');
+const searchToggle = document.getElementById('searchToggle');
+const searchInput = document.getElementById('searchInput');
+const startBtn = document.getElementById('start');
+
+function getStarsHTML(rating) {
+  let html = '';
+  const full = Math.floor(rating);
+  const half = rating % 1 >= 0.5 ? 1 : 0;
+  for (let i = 0; i < full; i++) html += '<i class="fa-solid fa-star"></i>';
+  if (half) html += '<i class="fa-solid fa-star-half-stroke"></i>';
+  const empty = 5 - full - half;
+  for (let i = 0; i < empty; i++) html += '<i class="fa-regular fa-star"></i>';
+  return html;
+}
+
+function createBookCard(book) {
+  const card = document.createElement('div');
+  card.id = 'books';
+  card.innerHTML = `
+    <img src="${book.img}" alt="${book.title}" loading="lazy" onerror="this.src='book.jpg'">
+    <span id="booktitle">${book.title}</span>
+    <span id="genre">${book.genre}</span>
+    <span id="bookstars">${getStarsHTML(book.rating)}</span>
+    <span id="rangerate">${book.rating.toFixed(1)}</span>
+  `;
+  card.addEventListener('click', () => {
+    if (book.link) window.location = book.link;
+  });
+  return card;
+}
+
+function createSection(title, books, showLink = true) {
+  const section = document.createElement('div');
+  section.className = 'genre-section';
+
+  const header = document.createElement('div');
+  header.className = 'section-header';
+  header.innerHTML = `
+    <h2 class="section-title">${title}</h2>
+    ${showLink ? '<a href="#" class="section-link">See all &rarr;</a>' : ''}
+  `;
+
+  const slides = document.createElement('div');
+  slides.className = 'slides';
+  books.forEach(book => slides.appendChild(createBookCard(book)));
+
+  section.appendChild(header);
+  section.appendChild(slides);
+  return section;
+}
+
+function renderAllSections() {
+  mainContent.innerHTML = '';
+
+  const trending = booksDB.filter(b => b.category === 'trending');
+  const latest = booksDB.filter(b => b.category === 'latest');
+  const scifi = booksDB.filter(b => b.category === 'scifi');
+  const romance = booksDB.filter(b => b.category === 'romance');
+  const history = booksDB.filter(b => b.category === 'history');
+  const technology = booksDB.filter(b => b.category === 'technology');
+  const dopesheet = booksDB.filter(b => b.category === 'dopesheet');
+
+  mainContent.appendChild(createSection("Trending Now", trending));
+  mainContent.appendChild(createSection("Latest Releases", latest));
+  mainContent.appendChild(createSection("Science Fiction", scifi));
+  mainContent.appendChild(createSection("Romance", romance));
+  mainContent.appendChild(createSection("History", history));
+  mainContent.appendChild(createSection("Technology", technology));
+  mainContent.appendChild(createSection("Dope Sheet", dopesheet));
+}
+
+function filterByCategory(cat) {
+  mainContent.innerHTML = '';
+  if (cat === 'all') { renderAllSections(); return; }
+  const filtered = booksDB.filter(b => b.category === cat);
+  const catName = cat.charAt(0).toUpperCase() + cat.slice(1);
+  mainContent.appendChild(createSection(catName + " Books", filtered, false));
+}
+
+categoryList.addEventListener('click', (e) => {
+  e.preventDefault();
+  const link = e.target.closest('a');
+  if (!link) return;
+  categoryList.querySelectorAll('li').forEach(li => li.classList.remove('active'));
+  link.parentElement.classList.add('active');
+  filterByCategory(link.dataset.cat);
+  link.parentElement.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+});
+
+searchToggle.addEventListener("click", () => {
+  searchInput.classList.toggle("open");
+  if (searchInput.classList.contains("open")) searchInput.focus();
+  else { searchInput.value = ''; renderAllSections(); }
+});
+
+searchInput.addEventListener('input', (e) => {
+  const query = e.target.value.toLowerCase().trim();
+  if (!query) { renderAllSections(); return; }
+  const results = booksDB.filter(b =>
+    b.title.toLowerCase().includes(query) ||
+    b.genre.toLowerCase().includes(query)
+  );
+  mainContent.innerHTML = '';
+  mainContent.appendChild(createSection('Results for "' + query + '"', results, false));
+});
+
+startBtn.addEventListener("click", () => {
+  window.location = "Computer-History/index.html";
+});
+
+renderAllSections();
+</script>
